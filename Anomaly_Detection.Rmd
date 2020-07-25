@@ -1,0 +1,91 @@
+---
+title: "Carrefour Kenya Analysis"
+author: "Patrick Atak"
+date: "25/07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Research Question
+
+You are a Data analyst at Carrefour Kenya and are currently undertaking a project that will inform the marketing department on the most relevant marketing strategies that will result in the highest no. of sales (total price including tax). Your project has been divided into three parts where you'll explore a recent marketing data set by performing various unsupervised learning techniques and later providing recommendations based on your insights.
+
+```R
+# Load libraries
+
+library(tidyverse)
+library(anomalize)
+library(tibbletime)
+```
+
+```R
+# Read the data 
+df4 <- read.csv('Supermarket_Sales_Forecasting_part_4 - Sales.csv')
+
+# Check the dimension of the dataset
+dim(df4)
+
+# Checking data structure
+str(df4)
+
+# Converting sales from a factor to date type
+df4$Date <- as.Date(df4$Date, "%m/%d/%Y")
+
+```
+
+## Making visualisations of the dataset
+```R
+# Install packages
+install.packages("ggplot2")
+library(ggplot2)
+
+ggplot(data = df4, aes(x = Date, y = Sales)) +
+      geom_bar(stat = "identity") +
+      labs(title = "Sales distribution",
+           x = "Date", y = "Sales(ksh)")
+           
+
+
+#Ordering the data by Date
+
+df4 = df4 %>% arrange(Date)
+head(df4)
+
+# Since our data has many records per day, 
+# We get the average per day, so that the data
+df4 = aggregate(Sales ~ Date, df4, mean)
+head(df4)
+
+# Converting data frame to a tibble time (tbl_time)
+# tbl_time have a time index that contains information about which column 
+# should be used for time-based subsetting and other time-based manipulation,
+
+df4 = tbl_time(df4, Date)
+class(df4)
+```
+
+## Anomaly Detection
+We now use the following functions to detect and visualize anomalies; We decomposed the “count” column into “observed”, “season”, “trend”, and “remainder” columns. The default values for time series decompose are method = "stl", which is just seasonal decomposition using a Loess smoother (refer to stats::stl()).
+
+The frequency and trend parameters are automatically set based on the time scale (or periodicity) of the time series using tibbletime based function under the hood.
+
+time_decompose() - this function would help with time series decomposition.
+
+anomalize() - We perform anomaly detection on the decomposed data using the remainder column through the use of the anomalize() function which procides 3 new columns; “remainder_l1” (lower limit), “remainder_l2” (upper limit), and “anomaly” (Yes/No Flag).
+
+time_recompose() - We create the lower and upper bounds around the “observed” values through the use of the time_recompose() function, which recomposes the lower and upper bounds of the anomalies around the observed values. We create new columns created: “recomposed_l1” (lower limit) and “recomposed_l2” (upper limit).
+
+plot_anomalies() - we now plot using plot_anomaly_decomposition() to visualize out data.
+
+```R
+df4 %>%
+    time_decompose(Sales) %>%
+    anomalize(remainder) %>%
+    time_recompose() %>%
+    plot_anomalies(time_recomposed = TRUE, ncol = 3, alpha_dots = 0.5)
+    
+
+```

@@ -1,0 +1,149 @@
+---
+title: "Carrefour Kenya Analysis"
+author: "Patrick Atak"
+date: "25/07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Research Question
+
+You are a Data analyst at Carrefour Kenya and are currently undertaking a project that will inform the marketing department on the most relevant marketing strategies that will result in the highest no. of sales (total price including tax). Your project has been divided into three parts where you'll explore a recent marketing data set by performing various unsupervised learning techniques and later providing recommendations based on your insights.
+
+
+
+## Import the dataset
+
+```R
+df <- read.csv('Supermarket_Dataset_1_part_1_2 - Sales Data.csv')
+
+# Top 6 observations
+head(df)
+
+# Getting the column names
+colnames(df)
+
+# Getting the dimension of the dataset
+dim(df)
+
+# Getting the structure of the dataset
+str(df)
+
+# Identifying missing data in the dataset
+is.na(df)
+
+# Finding total missing values in each column
+colSums(is.na(df))
+
+# Dealing with the missing values
+df <- na.omit(df)
+
+```
+
+```R
+# Detecting and Handling Outliers
+boxplot.out(df$Tax)$out
+boxplot.out(df$Tax)
+
+# Previewing Datasets
+View(df)
+str(df)
+dim(df)
+class(df)
+
+# Detecting and Handling Duplicates
+duplicated(df)
+
+# Look for any duplicates in the dataset
+anyDuplicated(df)
+
+# Finding Duplicated rows
+duplicated_rows <- df[duplicated(df), ]
+
+# Removing Duplicated rows
+df <- unique(df)
+```
+
+```R
+# Measures of Central Tendency
+# Using the Tax observation columns
+
+# Mean
+mean(df$Tax)
+
+# Median
+median(df$Tax)
+
+# Mode
+getMode <- function(v){
+uniqv <- unique(v)
+uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+getMode(df$Tax)
+
+# Install skimr package
+install.packages('skimr')
+library(skimr)
+skim(df)
+
+```
+## Including Plots
+
+```R
+# Including the plots
+
+# Histogram of Quantity
+hist(df$Quantity, main = 'Histogram of Quantity', xlab = "Quantity")
+
+# Histogram of Tax
+hist(df$Tax, main = 'Histogram of Tax', xlab = "Tax")
+
+# Boxplot of Tax to check for outlier
+boxplot(df$Tax)
+
+```
+
+## Bivariate and Multivariate EDA
+```R
+# Correlation between Gross Income and Quantity sold
+df_gross <- df$gross.income
+
+cor(df$Tax, df_gross)
+
+# Covariance between Gross Income and Quantity sold
+
+cov(df$Tax, df_gross)
+
+# creating a scatter plot
+
+plot(df$Tax, df_gross, xlab="Tax", ylab="Gross Income")
+
+```
+
+## Dimensionality Reduction - Principal Component Analysis
+```R
+# Principal Component Analysis
+
+# Select all the numerical data
+df_pca <- prcomp(df[,c(12:15)], center = TRUE)
+
+# Check the structure of the PCA object
+str(df_pca)
+
+# Plot the PCA 
+# Use ggbiplot visualisation
+library(devtools)
+install_github("vqv/ggbiplot")
+
+# Load the ggbiplot
+library(ggbiplot)
+ggbiplot(df_pca)
+
+# Plotting PCA 3 & PCA 4
+ggbiplot(df_pca, ellipse = TRUE, choices = c(1,2), 
+labels = rownames(df), groups = df$Branch)
+
+```

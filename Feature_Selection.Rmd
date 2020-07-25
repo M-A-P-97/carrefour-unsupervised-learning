@@ -1,0 +1,172 @@
+---
+title: "Carrefour Kenya Analysis"
+author: "Patrick Atak"
+date: "25/07/2020"
+output: html_document
+---
+
+## Research Question
+
+You are a Data analyst at Carrefour Kenya and are currently undertaking a project that will inform the marketing department on the most relevant marketing strategies that will result in the highest no. of sales (total price including tax). Your project has been divided into three parts where you'll explore a recent marketing data set by performing various unsupervised learning techniques and later providing recommendations based on your insights.
+
+
+
+## Import the dataset
+
+```R
+df <- read.csv('Supermarket_Dataset_1_part_1_2 - Sales Data.csv')
+
+# Top 6 observations
+head(df)
+
+# Getting the column names
+colnames(df)
+
+# Getting the dimension of the dataset
+dim(df)
+
+# Getting the structure of the dataset
+str(df)
+
+# Identifying missing data in the dataset
+is.na(df)
+
+# Finding total missing values in each column
+colSums(is.na(df))
+
+# Dealing with the missing values
+df <- na.omit(df)
+
+```
+
+```R
+# Detecting and Handling Outliers
+boxplot.stats(df$Tax)$out
+boxplot.stats(df$Tax)
+
+# Previewing Datasets
+View(df)
+str(df)
+dim(df)
+class(df)
+
+# Detecting and Handling Duplicates
+duplicated(df)
+
+# Look for any duplicates in the dataset
+anyDuplicated(df)
+
+# Finding Duplicated rows
+duplicated_rows <- df[duplicated(df), ]
+
+# Removing Duplicated rows
+df <- unique(df)
+```
+
+```R
+# Measures of Central Tendency
+# Using the Tax observation columns
+
+# Mean
+mean(df$Tax)
+
+# Median
+median(df$Tax)
+
+# Mode
+getMode <- function(v){
+uniqv <- unique(v)
+uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+getMode(df$Tax)
+
+# Install skimr package
+# install.packages('skimr')
+library(skimr)
+skim(df)
+
+```
+## Including Plots
+
+```R
+# Including the plots
+
+# Histogram of Quantity
+hist(df$Quantity, main = 'Histogram of Quantity', xlab = "Quantity")
+
+# Histogram of Tax
+hist(df$Tax, main = 'Histogram of Tax', xlab = "Tax")
+
+# Boxplot of Tax to check for outlier
+boxplot(df$Tax)
+
+```
+
+## Bivariate and Multivariate EDA
+```R
+# Correlation between Gross Income and Quantity sold
+df_gross <- df$gross.income
+
+cor(df$Tax, df_gross)
+
+# Covariance between Gross Income and Quantity sold
+
+cov(df$Tax, df_gross)
+
+# creating a scatter plot
+
+plot(df$Tax, df_gross, xlab="Tax", ylab="Gross Income")
+
+```
+
+## Feature Selection
+```R
+# Using Embedded Methods
+# ---
+# We will use the ewkm function from the wskm package.
+# This is a weighted subspace clustering algorithm that is well suited to very high dimensional data.
+# ---
+
+
+# We install and load our wskm package
+# ---
+#
+suppressWarnings(
+        suppressMessages(if
+                         (!require(wskm, quietly=TRUE))
+                install.packages("wskm")))
+library(wskm)
+
+set.seed(2)
+model <- ewkm(df[12:15], 3, lambda=2, maxiter=1000)
+
+```
+
+```R
+# Loading and installing our cluster package
+# ---
+#
+suppressWarnings(
+        suppressMessages(if
+                         (!require(cluster, quietly=TRUE))
+                install.packages("cluster")))
+library("cluster")
+
+# Cluster Plot against 1st 2 principal components
+# ---
+#
+clusplot(df[12:15], model$cluster, color=TRUE, shade=TRUE,
+         labels=2, lines=1,main='Cluster Analysis for CarreFour')
+
+```
+```R
+# Weights are calculated for each variable and cluster. 
+# They are a measure of the relative importance of each variable 
+# with regards to the membership of the observations to that cluster. 
+# The weights are incorporated into the distance function, 
+# typically reducing the distance for more important variables.
+# Weights remain stored in the model and we can check them as follows:
+# 
+round(model$weights*100,2)
+
+```

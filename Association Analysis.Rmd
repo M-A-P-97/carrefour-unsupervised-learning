@@ -1,0 +1,117 @@
+---
+title: "Carrefour Kenya Analysis"
+author: "Patrick Atak"
+date: "25/07/2020"
+output: html_document
+---
+
+## Research Question
+
+You are a Data analyst at Carrefour Kenya and are currently undertaking a project that will inform the marketing department on the most relevant marketing strategies that will result in the highest no. of sales (total price including tax). Your project has been divided into three parts where you'll explore a recent marketing data set by performing various unsupervised learning techniques and later providing recommendations based on your insights.
+
+
+## Import the dataset
+
+```R
+df3 <- read.csv('Supermarket_Sales_Dataset_part_3.csv')
+
+# Top 6 observations
+head(df3)
+
+# Getting the column names
+colnames(df3)
+
+# Getting the dimension of the dataset
+dim(df3)
+
+# Getting the structure of the dataset
+str(df3)
+
+# Identifying missing data in the dataset
+is.na(df3)
+
+# Finding total missing values in each column
+colSums(is.na(df3))
+
+# Dealing with the missing values
+df3 <- na.omit(df3)
+
+```
+
+## Association Analysis
+```R
+# install packages
+# install.packages('arules')
+library(arules)
+
+# Load the CSV data
+path <-"http://bit.ly/SupermarketDatasetII"
+
+# Read the CSV and convert them into class transactions
+Transactions <- read.transactions(path, sep=',')
+Transactions
+
+# Verify the Object Class
+class(Transactions)
+
+# Preview the first 5 transactions
+inspect(Transactions[1:5])
+
+# Preview the items that make up our dataset
+items <- as.data.frame(itemsLabels(Transactions))
+colnames(items) <- "Item"
+head(items, 10)
+
+# Generate a summary
+summary(Transactions)
+
+
+# Exploring the frequency of some articles 
+# i.e. transactions ranging from 8 to 10 and performing 
+# 
+# 
+itemFrequency(Transactions[, 8:10],type = "absolute")
+round(itemFrequency(Transactions[, 8:10],type = "relative")*100,2)
+
+
+# Producing a chart of frequencies and filtering 
+# to consider only items with a minimum percentage 
+# of support/ considering a top x of items
+# ---
+# Displaying top 10 most common items in the transactions dataset 
+# and the items whose relative importance is at least 10%
+# 
+par(mfrow = c(1, 2))
+
+# plot the frequency of items
+itemFrequencyPlot(Transactions, topN = 10,col="skyblue")
+itemFrequencyPlot(Transactions, support = 0.1,col="darkred")
+
+# Building a model based on association rules 
+# using the apriori function 
+# ---
+# We use Min Support as 0.001 and confidence as 0.8
+# ---
+# 
+rules <- apriori (Transactions, parameter = list(supp = 0.001, conf = 0.8))
+rules
+
+# We use measures of significance and interest on the rules, 
+# determining which ones are interesting and which to discard.
+# ---
+# However since we built the model using 0.001 Min support 
+# and confidence as 0.8 we obtained 74 rules.
+# However, in order to illustrate the sensitivity of the model to these two parameters, 
+# we will see what happens if we increase the support or lower the confidence level
+# 
+
+# Building a apriori model with Min Support as 0.002 and confidence as 0.8.
+rules2 <- apriori (Transactions,parameter = list(supp = 0.002, conf = 0.8)) 
+
+# Building apriori model with Min Support as 0.002 and confidence as 0.6.
+rules3 <- apriori (Transactions, parameter = list(supp = 0.001, conf = 0.6)) 
+
+rules2
+
+rules3
+```
